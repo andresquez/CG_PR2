@@ -61,6 +61,8 @@ class Raycaster(object):
         self.player = {"x": self.blocksize + 20, "y": self.blocksize + 20, "a": 0, "fov": pi / 3}
         self.map = []
         self.zbuffer = [-float('inf') for _ in range(0, 500)]
+        self.clock = pygame.time.Clock()  # Agregar un reloj para medir los FPS
+        self.font = pygame.font.Font(pygame.font.get_default_font(), 25)
 
     def point(self, x, y, c=None):
         self.screen.set_at((x, y), c)
@@ -157,12 +159,20 @@ class Raycaster(object):
         self.draw_player(1000 - 50 - 128, 500 - 100)
         self.draw_item(1000 - 300 - 128, 500 - 200)
 
+        # Agregar el contador de FPS en el nombre de la ventana
+        fps = str(int(self.clock.get_fps()))
+        pygame.display.set_caption(f"Wolfencraft - FPS: {fps}")
+
+        pygame.display.flip()
+        self.clock.tick(30)
 
 pygame.init()
 sound = pygame.mixer.Sound("./footsteps.wav")
 
 screen = pygame.display.set_mode((1000, 500))
 screen.set_alpha(None)
+
+pygame.display.set_caption("Wolfencraft")
 r = Raycaster(screen)
 r.load_map('./map.txt')
 
