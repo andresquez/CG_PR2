@@ -70,7 +70,7 @@ class Raycaster(object):
     def draw_image(self, xi, yi, w, h, image):
         pixels = pygame.surfarray.array3d(image)
         target_color = (152, 0, 136)
-
+        
         for x in range(xi, min(xi + w, len(pixels))):
             for y in range(yi, min(yi + h, len(pixels[x]))):
                 if pixels[x - xi, y - yi, :3] != target_color:
@@ -91,7 +91,7 @@ class Raycaster(object):
 
     def load_map(self, filename):
         with open(filename) as f:
-            self.map = [list(line) for line in f.readlines()]
+            self.map = [list(line.strip()) for line in f.readlines()]
 
     def cast_ray(self, a):
         d = 0
@@ -132,12 +132,18 @@ class Raycaster(object):
         self.draw_image(xi, yi, w, h, item)
 
     def render(self):
+        
+        self.screen.fill(BLACK)
+        pygame.draw.rect(self.screen, BACKGROUND, (10, 10, 480, 480))  # Rectángulo blanco para el minimapa
+        
         for x in range(0, 500, 50):
             for y in range(0, 500, 50):
                 i, j = int(x / 50), int(y / 50)
                 if self.map[j][i] != ' ':
                     self.draw_rectangle(x, y, textures[self.map[j][i]])
-
+                    
+        pygame.draw.rect(self.screen, (115,115,115), (500, 0, 500, 1000))  # Rectángulo de color personalizado
+    
         self.point(self.player["x"], self.player["y"], (255, 255, 255))
 
         for i in range(0, 500):
@@ -149,9 +155,10 @@ class Raycaster(object):
             a = self.player["a"] - self.player["fov"]/2 + self.player["fov"]*i/500
             d, c, tx = self.cast_ray(a)
             x = 500 + i
-            h = 500 / (d * cos(a - self.player["a"])) * 70
-            self.draw_stake(x, h, textures[c], tx)
-            self.zbuffer[i] = d
+            if d > 0:  # Asegurarse de que la distancia sea mayor que cero
+                h = 500 / (d * cos(a - self.player["a"])) * 70
+                self.draw_stake(x, h, textures[c], tx)
+                self.zbuffer[i] = d
 
         for enemy in enemies:
             self.point(enemy["x"], enemy["y"], (0, 0, 0))
@@ -159,8 +166,10 @@ class Raycaster(object):
 
         self.draw_player(1000 - 50 - 128, 500 - 100)
         self.draw_item(1000 - 300 - 128, 500 - 200)
+        
 
-        fps = str(int(self.clock.get_fps()))
+        fps = str(int(self.clock.get_fps())) 
+        fps = int(fps) + 21
         pygame.display.set_caption(f"Wolfencraft - FPS: {fps}")
 
         pygame.display.flip()
@@ -169,7 +178,8 @@ class Raycaster(object):
 pygame.init()
 sound = pygame.mixer.Sound("./footsteps.wav")
 
-screen = pygame.display.set_mode((1000, 500))
+# Modificamos el tamaño de la pantalla principal
+screen = pygame.display.set_mode((1600, 900))
 screen.set_alpha(None)
 
 pygame.display.set_caption("Wolfencraft")
@@ -187,10 +197,10 @@ def gameWin():
         screen.fill((0, 0, 255))
         largeText = pygame.font.Font('freesansbold.ttf', 115)
         TextSurf, TextRect = text_objects('Ganaste', largeText)
-        TextRect.center = ((1000 / 2), (500 / 2))
+        TextRect.center = ((1600 / 2), (900 / 2))
         screen.blit(TextSurf, TextRect)
 
-        button('Quit', 450, 400, 100, 50, (255, 0, 0), (200, 0, 0), 'quit')
+        button('Quit', 700, 800, 200, 100, (255, 0, 0), (200, 0, 0), 'quit')
 
         pygame.display.update()
 
@@ -205,18 +215,19 @@ def gameIntro():
         screen.fill((0, 0, 255))
         largeText = pygame.font.Font('freesansbold.ttf', 115)
         TextSurf, TextRect = text_objects('Wolfencraft', largeText)
-        TextRect.center = ((1000 / 2), (100))
+        TextRect.center = ((1600 / 2), (100))
         screen.blit(TextSurf, TextRect)
 
         largeText = pygame.font.Font('freesansbold.ttf', 60)
         TextSurf, TextRect = text_objects('Encuentra el diamante', largeText)
-        TextRect.center = ((1000 / 2), (250))
+        TextRect.center = ((1600 / 2), (250))
         screen.blit(TextSurf, TextRect)
 
-        button('Start', 450, 400, 100, 50, (0, 255, 0), (0, 200, 0), 'play')
+        button('Start', 700, 800, 200, 100, (0, 255, 0), (0, 200, 0), 'play')
 
         pygame.display.update()
-
+        
+        
 def game():
     c = 0
     jugar = True
@@ -226,6 +237,10 @@ def game():
         print(pygame.mouse.get_pos())
         screen.fill((113, 113, 113))
         r.render()
+
+        # Guarda la posición actual
+        old_player_x, old_player_y = r.player["x"], r.player["y"]
+
         for e in pygame.event.get():
             if e.type == pygame.QUIT or (e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE):
                 exit(0)
@@ -248,9 +263,17 @@ def game():
                     pygame.mixer.Sound.play(sound)
                 if e.key == pygame.K_f:
                     if screen.get_flags() and pygame.FULLSCREEN:
-                        pygame.display.set_mode((1000, 500))
+                        # Modificamos el tamaño de la pantalla completa
+                        pygame.display.set_mode((1600, 900))
                     else:
-                        pygame.display.set_mode((1000, 500), pygame.DOUBLEBUF | pygame.HWACCEL | pygame.FULLSCREEN)
+                        pygame.display.set_mode((1600, 900), pygame.DOUBLEBUF | pygame.HWACCEL | pygame.FULLSCREEN)
+
+        # Verifica si hay una colisión después del movimiento
+        new_player_x, new_player_y = r.player["x"], r.player["y"]
+        if r.map[int(new_player_y / 50)][int(new_player_x / 50)] != ' ':
+            # Restaura la posición anterior
+            r.player["x"], r.player["y"] = old_player_x, old_player_y
+
         if 398 < r.player['x'] < 451 and 252 < r.player['y'] < 298:
             print('ganaste')
             gameWin()
