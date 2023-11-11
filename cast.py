@@ -61,32 +61,33 @@ class Raycaster(object):
         self.player = {"x": self.blocksize + 20, "y": self.blocksize + 20, "a": 0, "fov": pi / 3}
         self.map = []
         self.zbuffer = [-float('inf') for _ in range(0, 500)]
-        self.clock = pygame.time.Clock()  # Agregar un reloj para medir los FPS
+        self.clock = pygame.time.Clock()
         self.font = pygame.font.Font(pygame.font.get_default_font(), 25)
 
     def point(self, x, y, c=None):
         self.screen.set_at((x, y), c)
-
+        
     def draw_image(self, xi, yi, w, h, image):
-        pixels = [(x, y, image.get_at((int((x - xi) * 32 / w), int((y - yi) * 32 / h))))
-                  for x in range(xi, xi + w) for y in range(yi, yi + h)]
-        for px, py, c in pixels:
-            if c != (152, 0, 136, 255):
-                self.point(px, py, c)
+        pixels = pygame.surfarray.array3d(image)
+        target_color = (152, 0, 136)
+
+        for x in range(xi, min(xi + w, len(pixels))):
+            for y in range(yi, min(yi + h, len(pixels[x]))):
+                if pixels[x - xi, y - yi, :3] != target_color:
+                    self.point(x, y, tuple(pixels[x - xi, y - yi]))
 
     def draw_rectangle(self, x, y, texture):
-        pixels = [(cx, cy, texture.get_at((int((cx - x) * 173 / 50), int((cy - y) * 173 / 50))))
-                  for cx in range(x, x + 50) for cy in range(y, y + 50)]
-        for px, py, c in pixels:
-            self.point(px, py, c)
+        pixels = pygame.surfarray.array3d(texture)
+        for cx in range(x, x + 50):
+            for cy in range(y, y + 50):
+                self.point(cx, cy, pixels[int((cx - x) * 173 / 50), int((cy - y) * 173 / 50)])
 
     def draw_stake(self, x, h, texture, tx):
         start = int(250 - h/2)
         end = int(250 + h/2)
-        pixels = [(x, y, texture.get_at((tx, int(((y - start) * 173) / (end - start)))))
-                  for y in range(start, end)]
-        for px, py, c in pixels:
-            self.point(px, py, c)
+        pixels = pygame.surfarray.array3d(texture)
+        for y in range(start, end):
+            self.point(x, y, pixels[tx, int(((y - start) * 173) / (end - start))])
 
     def load_map(self, filename):
         with open(filename) as f:
@@ -116,13 +117,13 @@ class Raycaster(object):
         sprite_x = 500 + (sprite_a - self.player["a"]) * 500 / self.player["fov"] + 250 - sprite_size / 2
         sprite_y = 250 - sprite_size / 2
         sprite_x, sprite_y, sprite_size = int(sprite_x), int(sprite_y), int(sprite_size)
-        pixels = [(x, y, sprite["texture"].get_at((int((x - sprite_x) * 128 / sprite_size),
-                                                     int((y - sprite_y) * 128 / sprite_size))))
-                  for x in range(sprite_x, sprite_x + sprite_size) for y in range(sprite_y, sprite_y + sprite_size)
-                  if 500 < x < 1000 and self.zbuffer[x - 500] >= sprite_d]
-        for px, py, c in pixels:
-            self.point(px, py, c)
-            self.zbuffer[px - 500] = sprite_d
+        pixels = pygame.surfarray.array3d(sprite["texture"])
+        for x in range(sprite_x, sprite_x + sprite_size):
+            for y in range(sprite_y, sprite_y + sprite_size):
+                if 500 < x < 1000 and self.zbuffer[x - 500] >= sprite_d:
+                    self.point(x, y, pixels[int((x - sprite_x) * 128 / sprite_size),
+                                             int((y - sprite_y) * 128 / sprite_size)])
+                    self.zbuffer[x - 500] = sprite_d
 
     def draw_player(self, xi, yi, w=100, h=100):
         self.draw_image(xi, yi, w, h, hand)
@@ -159,7 +160,6 @@ class Raycaster(object):
         self.draw_player(1000 - 50 - 128, 500 - 100)
         self.draw_item(1000 - 300 - 128, 500 - 200)
 
-        # Agregar el contador de FPS en el nombre de la ventana
         fps = str(int(self.clock.get_fps()))
         pygame.display.set_caption(f"Wolfencraft - FPS: {fps}")
 
