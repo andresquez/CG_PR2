@@ -7,9 +7,12 @@ BACKGROUND = (0, 255, 255)
 
 wall1 = pygame.image.load('./minecraftStone.png')
 wall2 = pygame.image.load('./minecraftWood.png')
-wall3 = pygame.image.load('./diamond.png')
+wall3 = pygame.image.load('./minecraftIron.png')
 wall4 = pygame.image.load('./lava.png')
 wall5 = pygame.image.load('./water.png')
+wall6 = pygame.image.load('./diamond.png')
+picaxe = pygame.image.load('./picaxe2.png')
+
 
 textures = {
     "1": wall1,
@@ -17,6 +20,7 @@ textures = {
     "3": wall3,
     "4": wall4,
     "5": wall5,
+    "6": wall6,
 }
 
 def text_objects(text, font):
@@ -45,13 +49,6 @@ def button(msg, x, y, w, h, ic, ac, action=None):
 hand = pygame.image.load('./stevehand.png')
 item = pygame.image.load('./player.png')
 
-enemies = [
-    {"x": 100, "y": 200, "texture": pygame.image.load('./enemy.png')},
-    {"x": 280, "y": 190, "texture": pygame.image.load('./enemy.png')},
-    {"x": 225, "y": 340, "texture": pygame.image.load('./enemy.png')},
-    {"x": 220, "y": 425, "texture": pygame.image.load('./enemy.png')},
-    {"x": 425, "y": 275, "texture": pygame.image.load('./diamante.png')},
-]
 
 class Raycaster(object):
     def __init__(self, screen):
@@ -68,13 +65,8 @@ class Raycaster(object):
         self.screen.set_at((x, y), c)
         
     def draw_image(self, xi, yi, w, h, image):
-        pixels = pygame.surfarray.array3d(image)
-        target_color = (152, 0, 136)
-        
-        for x in range(xi, min(xi + w, len(pixels))):
-            for y in range(yi, min(yi + h, len(pixels[x]))):
-                if pixels[x - xi, y - yi, :3] != target_color:
-                    self.point(x, y, tuple(pixels[x - xi, y - yi]))
+        # Utiliza blit para manejar automáticamente la transparencia
+        self.screen.blit(image, (xi, yi), (0, 0, w, h))
 
     def draw_rectangle(self, x, y, texture):
         pixels = pygame.surfarray.array3d(texture)
@@ -113,24 +105,31 @@ class Raycaster(object):
     def draw_sprite(self, sprite):
         sprite_a = atan2(sprite["y"] - self.player["y"], sprite["x"] - self.player["x"])
         sprite_d = ((self.player["x"] - sprite["x"])**2 + (self.player["y"] - sprite["y"])**2)**0.5
-        sprite_size = (500 / sprite_d) * 70
+        sprite_size = (500 / sprite_d) * 52.5  # 75% del tamaño original (70 * 0.75 = 52.5)
         sprite_x = 500 + (sprite_a - self.player["a"]) * 500 / self.player["fov"] + 250 - sprite_size / 2
         sprite_y = 250 - sprite_size / 2
         sprite_x, sprite_y, sprite_size = int(sprite_x), int(sprite_y), int(sprite_size)
         pixels = pygame.surfarray.array3d(sprite["texture"])
-        for x in range(sprite_x, sprite_x + sprite_size):
-            for y in range(sprite_y, sprite_y + sprite_size):
+
+        for x in range(sprite_x, min(sprite_x + sprite_size, 1000)):  # Asegura que no exceda los límites de la pantalla
+            for y in range(sprite_y, min(sprite_y + sprite_size, 1000)):  # Asegura que no exceda los límites de la pantalla
                 if 500 < x < 1000 and self.zbuffer[x - 500] >= sprite_d:
-                    self.point(x, y, pixels[int((x - sprite_x) * 128 / sprite_size),
-                                             int((y - sprite_y) * 128 / sprite_size)])
-                    self.zbuffer[x - 500] = sprite_d
+                    # Ajusta los índices para evitar desbordamientos
+                    pixel_x = int((x - sprite_x) * len(pixels) / sprite_size)
+                    pixel_y = int((y - sprite_y) * len(pixels[0]) / sprite_size)
+                    if 0 <= pixel_x < len(pixels) and 0 <= pixel_y < len(pixels[0]):
+                        self.point(x, y, pixels[pixel_x, pixel_y])
+                        self.zbuffer[x - 500] = sprite_d
+
+
 
     def draw_player(self, xi, yi, w=100, h=100):
-        self.draw_image(xi, yi, w, h, hand)
+        # Cambia la posición de la mano o el arma en el centro de la pantalla
+        self.draw_image(750, 400, 100, 100, hand)  # Ajusta las coordenadas según sea necesario
 
     def draw_item(self, xi, yi, w=200, h=200):
-        self.draw_image(xi, yi, w, h, item)
-
+        self.draw_image(1450, 600, 200, 200, item)
+        
     def render(self):
         
         self.screen.fill(BLACK)
@@ -162,11 +161,9 @@ class Raycaster(object):
 
         for enemy in enemies:
             self.point(enemy["x"], enemy["y"], (0, 0, 0))
-            self.draw_sprite(enemy)
+            enemy["texture"] = pygame.image.load('./enemy.png').convert_alpha()
 
-        self.draw_player(1000 - 50 - 128, 500 - 100)
-        self.draw_item(1000 - 300 - 128, 500 - 200)
-        
+            self.draw_sprite(enemy)
 
         fps = str(int(self.clock.get_fps())) 
         fps = int(fps) + 21
@@ -176,11 +173,25 @@ class Raycaster(object):
         self.clock.tick(30)
 
 pygame.init()
+
 sound = pygame.mixer.Sound("./footsteps.wav")
 
 # Modificamos el tamaño de la pantalla principal
-screen = pygame.display.set_mode((1600, 900))
+# Crea una superficie de pantalla con capacidad alfa
+screen = pygame.display.set_mode((1600, 900), pygame.SRCALPHA)
+
+# Configura la transparencia de la superficie de la pantalla
 screen.set_alpha(None)
+
+
+
+enemies = [
+    {"x": 100, "y": 200, "texture": pygame.image.load('./enemy.png').convert_alpha()},
+    {"x": 280, "y": 190, "texture": pygame.image.load('./enemy.png').convert_alpha()},
+    {"x": 225, "y": 340, "texture": pygame.image.load('./enemy.png').convert_alpha()},
+    {"x": 220, "y": 425, "texture": pygame.image.load('./enemy.png').convert_alpha()},
+    {"x": 425, "y": 275, "texture": pygame.image.load('./diamante.png').convert_alpha()},
+]
 
 pygame.display.set_caption("Wolfencraft")
 r = Raycaster(screen)
@@ -239,12 +250,9 @@ def gameIntro():
 
         pygame.display.update()
 
-
 def game():
     pygame.mouse.set_visible(False)
-    c = 0
     jugar = True
-    ganaste = False
     moving = {'up': False, 'down': False, 'left': False, 'right': False}
 
     pygame.mixer.music.load('./minecraftMusic.mp3')
@@ -293,8 +301,15 @@ def game():
                     r.player["a"] -= 2 * pi
                 elif r.player["a"] < 0:
                     r.player["a"] += 2 * pi
-                
-                
+
+            # Cambios aquí: Verifica si se hace clic en los botones de nivel
+            elif e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
+                if 500 < e.pos[0] < 700 and 600 < e.pos[1] < 700:
+                    r.load_map('./map.txt')
+                elif 900 < e.pos[0] < 1100 and 600 < e.pos[1] < 700:
+                    r.load_map('./map2.txt')
+
+        # Movimiento del jugador
         if moving['up']:
             r.player["x"] += 10 * cos(r.player["a"])
             r.player["y"] += 10 * sin(r.player["a"])
@@ -310,25 +325,23 @@ def game():
         if moving['right']:
             r.player["x"] -= 10 * cos(r.player["a"] - pi / 2)
             r.player["y"] -= 10 * sin(r.player["a"] - pi / 2)
-            pygame.mixer.Sound.play(sound)
-
-        # Cambios aquí: Verifica si se hace clic en los botones de nivel
-        for e in pygame.event.get():
-            if e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
-                if 500 < e.pos[0] < 700 and 600 < e.pos[1] < 700:
-                    r.load_map('./map.txt')
-                elif 900 < e.pos[0] < 1100 and 600 < e.pos[1] < 700:
-                    r.load_map('./map2.txt')
 
         # Verifica si hay una colisión después del movimiento
-        new_player_x, new_player_y = r.player["x"], r.player["y"]
-        if r.map[int(new_player_y / 50)][int(new_player_x / 50)] != ' ':
+        new_player_x, new_player_y = int(r.player["x"]), int(r.player["y"])
+        if r.map[new_player_y // 50][new_player_x // 50] != ' ':
             # Restaura la posición anterior
             r.player["x"], r.player["y"] = old_player_x, old_player_y
 
         if 398 < r.player['x'] < 451 and 252 < r.player['y'] < 298:
             print('ganaste')
             gameWin()
+            
+        scaled_picaxe = pygame.transform.scale(picaxe, (300, 350))
+        
+        # flip the image horizontally
+        # scaled_picaxe = pygame.transform.flip(scaled_picaxe, True, False)
+        screen.blit(scaled_picaxe, (screen.get_width() - 900, screen.get_height() - 325))
+
         pygame.display.flip()
 
 gameIntro()
