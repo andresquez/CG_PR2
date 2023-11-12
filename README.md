@@ -30,7 +30,7 @@ Proyecto #2 - Gráficas por Computadora
 - [x] <span style="color:darkblue;">(10 puntos) Por agregar una pantalla de éxito cuando se cumpla una condición en el nivel</span>
    - **Razón:** se puede ver la pantalla de éxito
 
-**Total de puntos: 145 **
+**Total de puntos: 145**
 
 ## Showcase
 
