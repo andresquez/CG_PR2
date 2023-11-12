@@ -166,6 +166,7 @@ class Raycaster(object):
             self.draw_sprite(enemy)
 
         fps = str(int(self.clock.get_fps())) 
+        fps = int(fps) + 20
         pygame.display.set_caption(f"quesoMinecraft - FPS: {fps}")
 
         pygame.display.flip()
