@@ -212,6 +212,15 @@ def gameIntro():
                 pygame.quit()
                 quit()
 
+            # Cambios aquí: Mueve esta lógica fuera de la condición pygame.KEYDOWN
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if 500 < event.pos[0] < 700 and 600 < event.pos[1] < 700:
+                    r.load_map('./map.txt')
+                    game()
+                elif 900 < event.pos[0] < 1100 and 600 < event.pos[1] < 700:
+                    r.load_map('./map2.txt')
+                    game()
+
         screen.fill((0, 0, 255))
         largeText = pygame.font.Font('freesansbold.ttf', 115)
         TextSurf, TextRect = text_objects('Wolfencraft', largeText)
@@ -223,11 +232,14 @@ def gameIntro():
         TextRect.center = ((1600 / 2), (250))
         screen.blit(TextSurf, TextRect)
 
-        button('Start', 700, 800, 200, 100, (0, 255, 0), (0, 200, 0), 'play')
+        # Cambios aquí: Dos botones para elegir nivel
+        button('Nivel 1', 500, 600, 200, 100, (0, 255, 0), (0, 200, 0), 'play_map1')
+        button('Nivel 2', 900, 600, 200, 100, (0, 255, 0), (0, 200, 0), 'play_map2')
 
         pygame.display.update()
-        
-        
+
+
+
 def game():
     c = 0
     jugar = True
@@ -267,6 +279,13 @@ def game():
                         pygame.display.set_mode((1600, 900))
                     else:
                         pygame.display.set_mode((1600, 900), pygame.DOUBLEBUF | pygame.HWACCEL | pygame.FULLSCREEN)
+
+                # Cambios aquí: Verifica si se hace clic en los botones de nivel
+                if e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
+                    if 500 < e.pos[0] < 700 and 600 < e.pos[1] < 700:
+                        r.load_map('./map.txt')
+                    elif 900 < e.pos[0] < 1100 and 600 < e.pos[1] < 700:
+                        r.load_map('./map2.txt')
 
         # Verifica si hay una colisión después del movimiento
         new_player_x, new_player_y = r.player["x"], r.player["y"]
