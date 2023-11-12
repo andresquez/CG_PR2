@@ -253,6 +253,7 @@ def gameIntro():
 def game():
     pygame.mouse.set_visible(False)
     jugar = True
+    picaxe_y_offset = 0
     moving = {'up': False, 'down': False, 'left': False, 'right': False}
 
     pygame.mixer.music.load('./minecraftMusic.mp3')
@@ -335,12 +336,14 @@ def game():
         if 398 < r.player['x'] < 451 and 252 < r.player['y'] < 298:
             print('ganaste')
             gameWin()
-            
+        
+        picaxe_y_offset += 0.5 # Ajusta el valor según la velocidad de la animación
+        picaxe_vertical_offset = int(sin(picaxe_y_offset) * 10) 
+        
         scaled_picaxe = pygame.transform.scale(picaxe, (300, 350))
         
-        # flip the image horizontally
         # scaled_picaxe = pygame.transform.flip(scaled_picaxe, True, False)
-        screen.blit(scaled_picaxe, (screen.get_width() - 900, screen.get_height() - 325))
+        screen.blit(scaled_picaxe, (screen.get_width() - 900, screen.get_height() - 325 + picaxe_vertical_offset))
 
         pygame.display.flip()
 
