@@ -144,7 +144,7 @@ class Raycaster(object):
                     
         pygame.draw.rect(self.screen, (115,115,115), (500, 0, 500, 1000))  # Rectángulo de color personalizado
     
-        self.point(self.player["x"], self.player["y"], (255, 255, 255))
+        self.point(int(self.player["x"]), int(self.player["y"]), (255, 255, 255))
 
         for i in range(0, 500):
             self.point(500, i, (0, 0, 0))
@@ -187,6 +187,7 @@ r = Raycaster(screen)
 r.load_map('./map.txt')
 
 def gameWin():
+    pygame.mouse.set_visible(True)
     intro = True
     while intro:
         for event in pygame.event.get():
@@ -239,10 +240,13 @@ def gameIntro():
         pygame.display.update()
 
 
-
 def game():
+    pygame.mouse.set_visible(False)
     c = 0
     jugar = True
+    ganaste = False
+    moving = {'up': False, 'down': False, 'left': False, 'right': False}
+
     pygame.mixer.music.load('./minecraftMusic.mp3')
     pygame.mixer.music.play(-1)
     while jugar:
@@ -256,36 +260,65 @@ def game():
         for e in pygame.event.get():
             if e.type == pygame.QUIT or (e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE):
                 exit(0)
-            if e.type == pygame.KEYDOWN:
-                if e.key == pygame.K_a:
-                    r.player["a"] -= pi / 10
-                elif e.key == pygame.K_d:
-                    r.player["a"] += pi / 10
-                elif e.key == pygame.K_RIGHT:
-                    r.player["x"] += 10
-                    pygame.mixer.Sound.play(sound)
-                elif e.key == pygame.K_LEFT:
-                    r.player["x"] -= 10
-                    pygame.mixer.Sound.play(sound)
-                elif e.key == pygame.K_UP:
-                    r.player["y"] -= 10
-                    pygame.mixer.Sound.play(sound)
-                elif e.key == pygame.K_DOWN:
-                    r.player["y"] += 10
-                    pygame.mixer.Sound.play(sound)
+            elif e.type == pygame.KEYDOWN:
+                if e.key == pygame.K_d:
+                    moving['right'] = True
+                elif e.key == pygame.K_a:
+                    moving['left'] = True
+                elif e.key == pygame.K_w:
+                    moving['up'] = True
+                elif e.key == pygame.K_s:
+                    moving['down'] = True
                 if e.key == pygame.K_f:
                     if screen.get_flags() and pygame.FULLSCREEN:
-                        # Modificamos el tamaño de la pantalla completa
                         pygame.display.set_mode((1600, 900))
                     else:
                         pygame.display.set_mode((1600, 900), pygame.DOUBLEBUF | pygame.HWACCEL | pygame.FULLSCREEN)
+            elif e.type == pygame.KEYUP:
+                if e.key == pygame.K_d:
+                    moving['right'] = False
+                elif e.key == pygame.K_a:
+                    moving['left'] = False
+                elif e.key == pygame.K_w:
+                    moving['up'] = False
+                elif e.key == pygame.K_s:
+                    moving['down'] = False
+            elif e.type == pygame.MOUSEMOTION:
+                # Ajusta la rotación horizontal con la posición x del mouse
+                sensitivity = 0.003  # Puedes ajustar este valor según la sensibilidad deseada
+                r.player["a"] += e.rel[0] * sensitivity
+                
+                # Limitar la rotación horizontal
+                if r.player["a"] > 2 * pi:
+                    r.player["a"] -= 2 * pi
+                elif r.player["a"] < 0:
+                    r.player["a"] += 2 * pi
+                
+                
+        if moving['up']:
+            r.player["x"] += 10 * cos(r.player["a"])
+            r.player["y"] += 10 * sin(r.player["a"])
+            pygame.mixer.Sound.play(sound)
+        if moving['down']:
+            r.player["x"] -= 10 * cos(r.player["a"])
+            r.player["y"] -= 10 * sin(r.player["a"])
+            pygame.mixer.Sound.play(sound)
+        if moving['left']:
+            r.player["x"] += 10 * cos(r.player["a"] - pi / 2)
+            r.player["y"] += 10 * sin(r.player["a"] - pi / 2)
+            pygame.mixer.Sound.play(sound)
+        if moving['right']:
+            r.player["x"] -= 10 * cos(r.player["a"] - pi / 2)
+            r.player["y"] -= 10 * sin(r.player["a"] - pi / 2)
+            pygame.mixer.Sound.play(sound)
 
-                # Cambios aquí: Verifica si se hace clic en los botones de nivel
-                if e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
-                    if 500 < e.pos[0] < 700 and 600 < e.pos[1] < 700:
-                        r.load_map('./map.txt')
-                    elif 900 < e.pos[0] < 1100 and 600 < e.pos[1] < 700:
-                        r.load_map('./map2.txt')
+        # Cambios aquí: Verifica si se hace clic en los botones de nivel
+        for e in pygame.event.get():
+            if e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
+                if 500 < e.pos[0] < 700 and 600 < e.pos[1] < 700:
+                    r.load_map('./map.txt')
+                elif 900 < e.pos[0] < 1100 and 600 < e.pos[1] < 700:
+                    r.load_map('./map2.txt')
 
         # Verifica si hay una colisión después del movimiento
         new_player_x, new_player_y = r.player["x"], r.player["y"]
@@ -299,3 +332,4 @@ def game():
         pygame.display.flip()
 
 gameIntro()
+
