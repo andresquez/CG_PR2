@@ -10,7 +10,7 @@ Proyecto #2 - Gráficas por Computadora
 - [x] (0 a 30 puntos) [Criterio subjetivo] Según la estética de su nivel
    - **Razón:** minecraft aesthetics 10/10
 - [x] (15 puntos) por mantener alrededor de 15 fps (los fps se deben desplegar)
-   - **Razón:** se mantiene como en 21-25 fps
+   - **Razón:** se mantiene como en 21-25 fps (se puede ver en el nombre de la ventana)
 - [x] (20 puntos) Por implementar una cámara con movimiento hacia delante y hacia atrás y rotación
    - **Razón:** se puede mover el personaje con wasd y rotar con el mouse
 - [x] (10 puntos más por implementar rotación con el mouse (solo horizontal))
@@ -31,3 +31,10 @@ Proyecto #2 - Gráficas por Computadora
    - **Razón:** se puede ver la pantalla de éxito
 
 **Total de puntos: 145 **
+
+## Showcase
+
+- ![Home](./screenshots/home.png)
+- ![Level 1](./screenshots/level1.png)
+- ![Level 2](./screenshots/level2.png)
+- [Video de Juego](https://youtu.be/8DhjnIb9Ziw)

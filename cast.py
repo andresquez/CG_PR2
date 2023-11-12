@@ -166,8 +166,7 @@ class Raycaster(object):
             self.draw_sprite(enemy)
 
         fps = str(int(self.clock.get_fps())) 
-        fps = int(fps) + 21
-        pygame.display.set_caption(f"Wolfencraft - FPS: {fps}")
+        pygame.display.set_caption(f"quesoMinecraft - FPS: {fps}")
 
         pygame.display.flip()
         self.clock.tick(30)
@@ -193,7 +192,7 @@ enemies = [
     {"x": 425, "y": 275, "texture": pygame.image.load('./diamante.png').convert_alpha()},
 ]
 
-pygame.display.set_caption("Wolfencraft")
+pygame.display.set_caption("quesoMinecraft")
 r = Raycaster(screen)
 r.load_map('./map.txt')
 
@@ -208,7 +207,7 @@ def gameWin():
 
         screen.fill((0, 0, 255))
         largeText = pygame.font.Font('freesansbold.ttf', 115)
-        TextSurf, TextRect = text_objects('Ganaste', largeText)
+        TextSurf, TextRect = text_objects('Felicitaciones, ganaste', largeText)
         TextRect.center = ((1600 / 2), (900 / 2))
         screen.blit(TextSurf, TextRect)
 
@@ -235,7 +234,7 @@ def gameIntro():
 
         screen.fill((0, 0, 255))
         largeText = pygame.font.Font('freesansbold.ttf', 115)
-        TextSurf, TextRect = text_objects('Wolfencraft', largeText)
+        TextSurf, TextRect = text_objects('quesoMinecraft', largeText)
         TextRect.center = ((1600 / 2), (100))
         screen.blit(TextSurf, TextRect)
 
@@ -334,7 +333,7 @@ def game():
             r.player["x"], r.player["y"] = old_player_x, old_player_y
 
         if 398 < r.player['x'] < 451 and 252 < r.player['y'] < 298:
-            print('ganaste')
+            print('Felicitaciones, ganaste!')
             gameWin()
         
         picaxe_y_offset += 0.5 # Ajusta el valor según la velocidad de la animación
