@@ -37,4 +37,4 @@ Proyecto #2 - Gráficas por Computadora
 - ![Home](./screenshots/home.png)
 - ![Level 1](./screenshots/level1.png)
 - ![Level 2](./screenshots/level2.png)
-- [Video de Juego](https://youtu.be/8DhjnIb9Ziw)
+- [Video de Juego](https://youtu.be/my_lthTBW3s)
